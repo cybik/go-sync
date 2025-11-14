@@ -5,11 +5,12 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/rs/zerolog/log"
+
 	"github.com/brave/go-sync/cache"
 	"github.com/brave/go-sync/datastore"
 	"github.com/brave/go-sync/schema/protobuf/sync_pb"
-	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -212,12 +213,12 @@ func getItemCounts(cache *cache.Cache, db datastore.Datastore, clientID string) 
 	return itemCounts, newNormalCount, newHistoryCount, nil
 }
 
-func getInterimItemCounts(cache *cache.Cache, clientID string, clear bool) (int, int, error) {
-	newNormalCount, err := cache.GetInterimCount(context.Background(), clientID, normalCountTypeStr, clear)
+func getInterimItemCounts(cache *cache.Cache, clientID string, clearCache bool) (int, int, error) {
+	newNormalCount, err := cache.GetInterimCount(context.Background(), clientID, normalCountTypeStr, clearCache)
 	if err != nil {
 		return 0, 0, err
 	}
-	newHistoryCount, err := cache.GetInterimCount(context.Background(), clientID, historyCountTypeStr, clear)
+	newHistoryCount, err := cache.GetInterimCount(context.Background(), clientID, historyCountTypeStr, clearCache)
 	if err != nil {
 		return 0, 0, err
 	}

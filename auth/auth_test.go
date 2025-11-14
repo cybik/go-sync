@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/suite"
+
 	"github.com/brave/go-sync/auth"
 	"github.com/brave/go-sync/auth/authtest"
-	"github.com/brave/go-sync/utils"
-	"github.com/stretchr/testify/suite"
 )
 
 type AuthTestSuite struct {
@@ -21,43 +21,43 @@ func (suite *AuthTestSuite) TestAuthenticate() {
 	// invalid token format
 	id, err := auth.Authenticate(base64.URLEncoding.EncodeToString([]byte("||")))
 	suite.Require().Error(err, "invalid token format should fail")
-	suite.Require().Equal("", id, "empty clientID should be returned")
+	suite.Require().Empty(id, "empty clientID should be returned")
 
 	// invalid signature
-	_, tokenHex, _, err := authtest.GenerateToken(utils.UnixMilli(time.Now()))
+	_, tokenHex, _, err := authtest.GenerateToken(time.Now().UnixMilli())
 	suite.Require().NoError(err, "generate token should succeed")
 	id, err = auth.Authenticate(base64.URLEncoding.EncodeToString([]byte("12" + tokenHex)))
 	suite.Require().Error(err, "invalid signature should fail")
-	suite.Require().Equal("", id)
+	suite.Require().Empty(id)
 
 	// valid token
-	tkn, _, expectedID, err := authtest.GenerateToken(utils.UnixMilli(time.Now()))
+	tkn, _, expectedID, err := authtest.GenerateToken(time.Now().UnixMilli())
 	suite.Require().NoError(err, "generate token should succeed")
 	id, err = auth.Authenticate(tkn)
 	suite.Require().NoError(err, "valid token should succeed")
 	suite.Require().Equal(expectedID, id)
 
 	// token expired -1 and +1 day
-	tkn, _, _, err = authtest.GenerateToken(utils.UnixMilli(time.Now()) - auth.TokenMaxDuration - 1)
+	tkn, _, _, err = authtest.GenerateToken(time.Now().UnixMilli() - auth.TokenMaxDuration - 1)
 	suite.Require().NoError(err, "generate token should succeed")
 	id, err = auth.Authenticate(tkn)
 	suite.Require().Error(err, "outdated token should failed")
-	suite.Require().Equal("", id)
+	suite.Require().Empty(id)
 
-	tkn, _, _, err = authtest.GenerateToken(utils.UnixMilli(time.Now()) + auth.TokenMaxDuration + 100)
+	tkn, _, _, err = authtest.GenerateToken(time.Now().UnixMilli() + auth.TokenMaxDuration + 100)
 	suite.Require().NoError(err, "generate token should succeed")
 	id, err = auth.Authenticate(tkn)
 	suite.Require().Error(err, "outdated token should failed")
-	suite.Require().Equal("", id)
+	suite.Require().Empty(id)
 }
 
 func (suite *AuthTestSuite) TestAuthorize() {
 	req, err := http.NewRequest("POST", "url", nil)
 	suite.Require().NoError(err, "NewRequest should succeed")
 
-	validToken, _, validClientID, err := authtest.GenerateToken(utils.UnixMilli(time.Now()))
+	validToken, _, validClientID, err := authtest.GenerateToken(time.Now().UnixMilli())
 	suite.Require().NoError(err, "generate token should succeed")
-	outdatedToken, _, _, err := authtest.GenerateToken(utils.UnixMilli(time.Now()) - auth.TokenMaxDuration - 1)
+	outdatedToken, _, _, err := authtest.GenerateToken(time.Now().UnixMilli() - auth.TokenMaxDuration - 1)
 	suite.Require().NoError(err, "generate token should succeed")
 
 	invalidTokenErr := fmt.Errorf("Not a valid token")

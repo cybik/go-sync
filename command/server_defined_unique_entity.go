@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/google/uuid"
+
 	"github.com/brave/go-sync/datastore"
 	"github.com/brave/go-sync/schema/protobuf/sync_pb"
-	"github.com/brave/go-sync/utils"
-	"github.com/satori/go.uuid"
 )
 
 const (
@@ -25,11 +25,11 @@ const (
 )
 
 func createServerDefinedUniqueEntity(name string, serverDefinedTag string, clientID string, parentID string, specifics *sync_pb.EntitySpecifics) (*datastore.SyncEntity, error) {
-	now := utils.UnixMilli(time.Now())
+	now := time.Now().UnixMilli()
 	deleted := false
 	folder := true
 	version := int64(1)
-	idString := uuid.NewV4().String()
+	idString := uuid.New().String()
 
 	pbEntity := &sync_pb.SyncEntity{
 		Ctime: &now, Mtime: &now, Deleted: &deleted, Folder: &folder,
